@@ -19,7 +19,7 @@ import (
 	"github.com/tendermint/ethermint/application"
 	"github.com/tendermint/ethermint/backend"
 	"github.com/tendermint/ethermint/node"
-	//	minerRewardStrategies "github.com/tendermint/ethermint/strategies/miner"
+	minerRewardStrategies "github.com/tendermint/ethermint/strategies/miner"
 	//	validatorsStrategy "github.com/tendermint/ethermint/strategies/validators"
 	cfg "github.com/tendermint/go-config"
 	tmcfg "github.com/tendermint/tendermint/config/tendermint"
@@ -137,19 +137,22 @@ func tmspEthereumAction(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Failed to attach to the inproc geth: %v", err)
 	}
-	_, err = server.NewServer(addr, tmsp, application.NewTMSPEthereumApplication(backend, client, nil, nil))
+	ethConfig := backend.Config()
 	/*
-		_, err = server.NewServer(
-			addr,
-			tmsp,
-			application.NewTMSPEthereumApplication(
-				backend,
-				client,
-				&minerRewardStrategies.RewardConstant{},
-				&validatorsStrategy.TxBasedValidatorsStrategy{},
-			),
-		)
+	_, err = server.NewServer(addr, tmsp, application.NewTMSPEthereumApplication(backend, client, nil, nil))
 	*/
+	_, err = server.NewServer(
+		addr,
+		tmsp,
+		application.NewTMSPEthereumApplication(
+			backend,
+			client,
+			&minerRewardStrategies.RewardConstant{
+				Etherbase: ethConfig.Etherbase,
+			},
+			nil,
+		),
+	)
 	if err != nil {
 		os.Exit(1)
 	}
